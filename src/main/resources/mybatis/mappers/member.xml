@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.member">
+	<resultMap id="memResult" type="memberVO">
+		<result property="email" column="email" />
+		<result property="pwd" column="pwd" />
+		<result property="name" column="name" />
+		<result property="phone" column="phone" />
+		<result property="proImg" column="proImg" />
+	</resultMap>
+
+	<!-- 회원가입 -->
+	<insert id="insertMember" parameterType="memberVO">
+		<![CDATA[
+		 insert into memberTBL(id,pwd,name,phone)
+		 values(#{email}, #{pwd}, #{name}, #{phone})
+		]]>
+	</insert>
+
+	<!-- 로그인 -->
+	<select id="loginById" resultType="memberVO"
+		parameterType="memberVO">
+		<![CDATA[
+		 select * from memberTBL
+		 where id = #{email} and pwd = #{pwd}
+		]]>
+	</select>
+
+	<!-- 중복확인 -->
+	<select id="idChk" resultType="int" parameterType="memberVO">
+		<![CDATA[
+		 select count(*) from memberTBL
+		 where id = #{email}
+		]]>
+	</select>
+
+	<!-- 회원정보 조회 -->
+	<select id="selectById" resultType="memberVO"
+		parameterType="String">
+		<![CDATA[
+		 select * from memberTBL
+		 where id = #{email}
+		]]>
+	</select>
+
+	<!-- 프로필 수정 -->
+	<update id="updateProfile" parameterType="java.util.Map">
+		update memberTBL
+		set proImg=#{proImg}
+		<if test="proImg!='' and proImg!=null">
+			, proImg=#{proImg}
+		</if>
+		where id=#{email}
+	</update>
+
+	<!-- 회원정보 수정 -->
+	<update id="updateMember" parameterType="memberVO">
+		<![CDATA[
+		update memberTBL
+		set pwd=#{pwd}, name=#{name}, phone=#{phone} where id=#{email}
+		]]>
+	</update>
+
+	<!-- 회원정보 삭제 -->
+	<delete id="deleteMember" parameterType="String">
+		<![CDATA[
+			delete from memberTBL where id=#{email}
+		]]>
+	</delete>
+
+	<!-- 회원 탈퇴 후 아이디만 보존 -->
+	<insert id="preserveId" parameterType="String">
+		<![CDATA[
+		 insert into memberTBL(email, pwd, name, phone)
+		 values(#{email}, '', '', '')
+		]]>
+	</insert>
+	
+</mapper>

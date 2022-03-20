@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.project">
+	<resultMap id="projectResult" type="writerVO">
+		<result property="writerNO" column="writerNO" />
+		<result property="writer" column="writer" />
+		<result property="wImg" column="wImg" />
+		<result property="wTitle" column="wTitle" />
+		<result property="wField" column="wField" />
+		<result property="wContents" column="wContents" />
+	</resultMap>
+
+	<!-- 프로젝트 글 추가 -->
+	<insert id="insertNewWriter" parameterType="java.util.Map">
+		<![CDATA[
+			insert into writerTBL
+			values(#{writerNO}, #{writer}, #{wImg}, #{wTitle}, #{wField}, #{wContents})
+		]]>
+	</insert>
+
+	<!-- 프로젝트 글 넘버링 -->
+	<select id="selectNewWriterNO" resultType="int">
+		<![CDATA[
+			SELECT ifnull(max(writerNO), 0) + 1
+			from writerTBL
+		]]>
+	</select>
+
+	<!-- 프로젝트 글 조회 -->
+	<!-- 카테고리별 + 정렬순 -->
+	<select id="selectAllWritersList" resultMap="writersResult">
+      <![CDATA[
+         select * 
+         from writerTBL
+         left outer join (select target, round(ifnull(avg(rate),0),1) as reviewRate from reviewTBL group by target)
+         ReviewRate on writerTBL.leader = ReviewRate.target
+         where pField like concat(#{wField},"%") and level like concat(#{level}, "%")
+         ${writerOrder}
+         limit #{pageStart}, #{perPageNum}
+      ]]>
+	</select>
+
+	<!-- 프로젝트 글 상세 조회 -->
+	<select id="selectById" resultType="writerVO">
+      <![CDATA[
+         select * from writerTBL where writer=#{writer} and writerNO=#{writerNO}
+      ]]>
+	</select>
+
+	<!-- 프로젝트 글 삭제 -->
+	<delete id="deleteWriter" parameterType="int">
+    <![CDATA[
+      delete from writerTBL
+      where writerNO=#{writerNO}
+    ]]>
+	</delete>
+
+	<!-- 프로젝트 글 수정 -->
+	<update id="updateWriter" parameterType="java.util.Map">
+		update writerTBL
+		set wTitle=#{wTitle},
+		wContents=#{wContents}
+		<if test="wField!=''">
+			, wField=#{wField}
+		</if>
+		<if test="wImg!='' and wImg!=null">
+			, wImg=#{wImg}
+		</if>
+		where writerNO=#{writerNO}
+	</update>
+
+	<!-- 프로젝트 글의 수 -->
+	<select id="countWriter" resultType="int" parameterType="int">
+		<![CDATA[
+			select count(*) 
+         	from writerTBL
+	        left outer join (select target, round(ifnull(avg(rate),0),1) as reviewRate from reviewTBL group by target)
+	        ReviewRate on writerTBL.leader = ReviewRate.target
+	        where wField like concat(#{wField},"%") and level like concat(#{level}, "%")
+	        ${writerOrder}
+		]]>
+	</select>
+
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.review">
+	<resultMap id="reviewResult" type="reviewVO">
+		<result property="reviewNO" column="reviewNO" />
+		<result property="reader" column="reader" />
+		<result property="target" column="target" />
+		<result property="rate" column="rate" />
+		<result property="review" column="review" />
+		<result property="rDate" column="rDate" />
+	</resultMap>
+
+	<!-- 코치 글 추가 -->
+	<insert id="insertReview" parameterType="java.util.Map">
+		<![CDATA[
+		 insert into reviewTBL (reviewNO, reader, target, rate, review, rDate)
+		 values(#{reviewNO}, #{reader}, #{target}, #{rate}, #{review}, #{rDate})
+		]]>
+	</insert>
+
+	<!-- 리뷰 넘버링 -->
+	<select id="selectNewReviewNO" resultType="int">
+		<![CDATA[
+			SELECT ifnull(max(reviewNO), 0) + 1
+			from reviewTBL
+		]]>
+	</select>
+
+	<!-- 리뷰 글 조회 -->
+	<select id="selectByTarget" resultMap="reviewResult">
+      <![CDATA[
+         select * from reviewTBL where target=#{target}
+         limit #{pageStart}, #{perPageNum}
+      ]]>
+	</select>
+
+	<!-- 리뷰 글 상세 조회 -->
+	<select id="selectReview" resultType="reviewVO"
+		parameterType="int">
+		<![CDATA[
+			SELECT *
+			from reviewTBL
+			where reviewNO = #{reviewNO}
+		]]>
+	</select>
+
+	<!-- 리뷰 글 수정 -->
+	<update id="updateReview" parameterType="java.util.Map">
+		update reviewTBL
+		set
+		<if test="rate!=''">
+			rate=#{rate},
+		</if>
+		review=#{review}
+		where reviewNO=#{reviewNO}
+	</update>
+
+	<!-- 리뷰 글 삭제 -->
+	<delete id="deleteReview" parameterType="int">
+	<![CDATA[
+		delete from reviewTBL
+		where reviewNO = #{reviewNO}
+	]]>
+	</delete>
+
+	<!-- 리뷰 글의 수 -->
+	<select id="countReview" resultType="int" parameterType="int">
+		<![CDATA[
+			SELECT count(*)
+			from reviewTBL
+			where target=#{target}
+		]]>
+	</select>
+
+	<!-- 후기가 있는 코치들 목록 조회 (중복제거) -->
+	<select id="selectTargets" resultType="String">
+		<![CDATA[
+			select DISTINCT target from reviewTBL
+		]]>
+	</select>
+
+	<!-- 후기 개수 세기 -->
+	<select id="selectReCountByTarget" resultType="int">
+		<![CDATA[
+			select count(*)from reviewTBL 
+			where target=#{key};
+		]]>
+	</select>
+
+	<!-- 평균 평점 내기 -->
+	<select id="selectReAvgByTarget" resultType="float">
+		<![CDATA[
+			select round(avg(rate),1) from reviewTBL where target=#{key};
+		]]>
+	</select>
+	
+</mapper>
